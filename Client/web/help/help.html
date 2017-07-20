@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta HTTP-EQUIV="Pragma" CONTENT="no-cache">
+    <meta HTTP-EQUIV="Cache-Control" CONTENT="no-cache">
+    <meta HTTP-EQUIV="Expires" CONTENT="0">
+    <link href="../pic/logo.ico" rel="shortcut icon">
+    <link rel="stylesheet" href="../lib/element/index.css">
+    <link rel="stylesheet" href="../../node_modules/animate.css/animate.min.css">
+    <link href="../lib/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../common/common.css">
+    <title>帮助中心</title>
+</head>
+<body style="width: 100%">
+<div class="container" style="margin: 0;width: 100%;overflow: hidden" v-cloak id="app">
+    <mainnav :transparent="1">
+        <el-button type="text" style="font-size: 15px;color: white" slot="slot3" onclick="window.open('https://github.com/sx1989827/DOClever','_blank')">开源</el-button>
+        <el-popover ref="popover" placement="bottom" width="250" trigger="hover" slot="other">
+            <span style="font-size: 15px;color: #20A0FF">
+                欢迎加入QQ讨论群：<span style="color: red">611940610</span>
+            </span>
+        </el-popover>
+        <el-button type="text" style="font-size: 15px;color: white" v-popover:popover slot="slot4">QQ群</el-button>
+        <el-button type="text" style="font-size: 15px;color: white" slot="slot1" v-if="!isLogin" onclick="location.href='../about/about.html'">关于</el-button>
+        <el-button type="text" style="font-size: 15px;color: white" slot="slot2" v-if="!isLogin" onclick="location.href='../help/help.html'">帮助</el-button>
+    </mainnav>
+    <el-row class="row" style="background-image: url('../pic/help/back.jpg');background-position:center center;background-size: cover;height: 500px;">
+
+    </el-row>
+    <el-row class="row" style="text-align: center;height: 700px;background-color: white;padding-top: 20px">
+        <el-col class="col" :span="4" style="font-size: larger;color: #50a3ff;font-weight: bold;">
+            基础
+            <ul style="font-size:15px;color: gray;padding: 0">
+                <li style="list-style-type:none;">
+                    <a style="color: gray;cursor: pointer" onclick="goTo.call(this,'b0385i031zz',this.innerText)">注册登录</a>
+                </li>
+                <li style="list-style-type:none;">
+                    <a style="color: gray;cursor: pointer" onclick="goTo.call(this,'t0385zwcw9z',this.innerText)">创建工程</a>
+                </li>
+            </ul>
+            接口管理
+            <ul style="font-size:15px;color: gray;padding: 0">
+                <li style="list-style-type:none;">
+                    <a style="color: gray;cursor: pointer" onclick="goTo.call(this,'s03857arrz0',this.innerText)">项目设置</a>
+                </li>
+                <li style="list-style-type:none;">
+                    <a style="color: gray;cursor: pointer" onclick="goTo.call(this,'f0385g0cx4u',this.innerText)">分组设置</a>
+                </li>
+                <li style="list-style-type:none;">
+                    <a style="color: gray;cursor: pointer" onclick="goTo.call(this,'c0385acs66r',this.innerText)">新建接口</a>
+                </li>
+                <li style="list-style-type:none;">
+                    <a style="color: gray;cursor: pointer" onclick="goTo.call(this,'i03856babac',this.innerText)">接口管理</a>
+                </li>
+            </ul>
+            接口调试
+            <ul style="font-size:15px;color: gray;padding: 0">
+                <li style="list-style-type:none;">
+                    <a style="color: gray;cursor: pointer" onclick="goTo.call(this,'z0385uxb9wz',this.innerText)">接口测试</a>
+                </li>
+                <li style="list-style-type:none;">
+                    <a style="color: gray;cursor: pointer" onclick="goTo.call(this,'z0385uxb9wz',this.innerText)">一键生成</a>
+                </li>
+                <li style="list-style-type:none;">
+                    <a style="color: gray;cursor: pointer" onclick="goTo.call(this,'s0385eojzym',this.innerText)">内网调试</a>
+                </li>
+                <li style="list-style-type:none;">
+                    <a style="color: gray;cursor: pointer" onclick="goTo.call(this,'l0389pjhedx',this.innerText)">Mock数据</a>
+                </li>
+            </ul>
+        </el-col>
+        <el-col class="col" :span="20">
+            <el-row class="row" style="text-align: center;font-size: 20px;color: gray;margin-bottom: 20px" id="title">
+                注册登录
+            </el-row>
+            <iframe frameborder="0" width="640" height="498" src="https://v.qq.com/iframe/player.html?vid=b0385i031zz&tiny=0&auto=0" allowfullscreen id="video"></iframe>
+        </el-col>
+    </el-row>
+    <el-row class="row" style="background-color: rgb(39,52,68);color: white">
+        <el-row class="row" style="text-align: center;padding-top: 50px;padding-bottom: 30px">
+            <a href="../about/about.html" style="text-decoration: none;color: white" target="_blank">关于我们</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+            <a href="../donate/donate.html" style="text-decoration: none;color: white" target="_blank">支持我们</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+            <a href="../help/help.html" style="text-decoration: none;color: white" target="_blank">帮助中心</a>
+        </el-row>
+        <el-row class="row" style="text-align: center;color: white;margin-bottom: 30px">
+            Copyright&nbsp;©&nbsp;2016～2017&nbsp;合肥市胖胖羊信息科技有限责任公司&nbsp;皖ICP备17002996号
+        </el-row>
+    </el-row>
+</div>
+<script src="../../dist/vendor.bundle.js"></script>
+<script src="../lib/element/index.js"></script>
+<script src="../../dist/help.js"></script>
+<script>
+    function goTo(id,title) {
+        document.getElementById("video").src="https://v.qq.com/iframe/player.html?vid="+id+"&tiny=0&auto=0";
+        document.getElementById("title").innerText=this.innerText;
+        return false;
+    }
+</script>
+</body>
+</html>
