@@ -25,12 +25,19 @@ var getHeader = function (req) {
 
 var filterResHeader = function (headers,res) {
     var ret = {};
+    res.setHeader("Cache-Control", "no-cache,no-store");
+    res.setHeader("Pragrma", "no-cache");
+    res.setHeader("Expires", 0);
     var resHeaders=res.getHeader("Access-Control-Expose-Headers")?res.getHeader("Access-Control-Expose-Headers").toLowerCase():"";
     for (var i in headers) {
         if (!/Access-/i.test(i)) {
             if(/set-cookie/i.test(i))
             {
-                ret[i]=headers[i][0].split(" ")[0];
+                for(let index=0;index<headers[i].length;index++)
+                {
+                    headers[i][index]=headers[i][index].split(" ")[0];
+                }
+                ret[i]=headers[i];
             }
             else
             {
@@ -109,6 +116,7 @@ function mock(req,res) {
         headers:  getHeader(req),
         port:obj.port?obj.port:80,
     }
+    console.log("初次请求：method:"+opt.method+"host:"+opt.host+"port:"+opt.port+"path:"+opt.path)
     if(opt.headers["content-length"])
     {
         delete opt.headers["content-length"]
@@ -116,6 +124,7 @@ function mock(req,res) {
     var req2 = http.request(opt, function (res2) {
         if(!realUrl || res2.headers["__finish"]=="0")
         {
+            console.log("接口开发中，返回mock数据");
             res.writeHead(res2.statusCode, filterResHeader(res2.headers,res));
             res2.pipe(res);
             res2.on('end', function () {
@@ -124,6 +133,7 @@ function mock(req,res) {
         }
         else
         {
+            console.log("接口已完成，调用真实接口");
             var headers=getHeader(req);
             var objUrl=url.parse(realUrl);
             var request1,opt1;
@@ -151,7 +161,9 @@ function mock(req,res) {
                 }
                 request1=https.request;
             }
+            console.log("调用真实接口：method:"+opt1.method+"host:"+opt1.host+"port:"+opt1.port+"path:"+opt1.path)
             var req3=request1(opt1,function (res3) {
+                console.log("真实接口调用完成。status:"+res3.statusCode)
                 res.writeHead(res3.statusCode, filterResHeader(res3.headers,res));
                 res3.pipe(res);
                 res3.on('end', function () {

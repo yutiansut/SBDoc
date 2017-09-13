@@ -700,11 +700,9 @@ module.exports=new Vuex.Store({
                 baseUrl=config.baseUrl;
                 path="/mock/"+sessionStorage.getItem("projectId")+(path[0]!="/"?("/"+path):path);
             }
+            var param={};
             context.state.param.forEach(function (obj) {
-                if(obj.name)
-                {
-                    path=path.replace("{"+obj.name+"}",obj.selValue)
-                }
+                param[obj.name]=obj.selValue;
             })
             var query={};
             context.getters.querySave.forEach(function (obj) {
@@ -724,7 +722,7 @@ module.exports=new Vuex.Store({
                 }
 
             })
-            var header={},arrHeaders=["host","connection","origin","referer","user-agent"],objHeaders={};
+            var header={},arrHeaders=["host","connection","origin","referer","user-agent","cookie"],objHeaders={};
             context.getters.headerSave.forEach(function (obj) {
                 if(obj.encrypt && obj.encrypt.type)
                 {
@@ -844,17 +842,22 @@ module.exports=new Vuex.Store({
                     }
                 }
             }
+
             if(context.state.interface.before.mode==0)
             {
                 if(context.state.globalBefore)
                 {
-                    helper.runBefore(context.state.globalBefore,baseUrl,path,method,query,header,body)
+                    helper.runBefore(context.state.globalBefore,baseUrl,path,method,query,header,body,param)
                 }
-                helper.runBefore(context.state.interface.before.code,baseUrl,path,method,query,header,body)
+                helper.runBefore(context.state.interface.before.code,baseUrl,path,method,query,header,body,param)
             }
             else
             {
-                helper.runBefore(context.state.interface.before.code,baseUrl,path,method,query,header,body)
+                helper.runBefore(context.state.interface.before.code,baseUrl,path,method,query,header,body,param)
+            }
+            for(var paramKey in param)
+            {
+                path=path.replace("{"+paramKey+"}",param[paramKey])
             }
             if((method=="POST" || method=="PUT" || method=="PATCH") && context.state.bodyInfo.type==1 && context.state.bodyInfo.rawType==2)
             {
@@ -872,7 +875,7 @@ module.exports=new Vuex.Store({
             header["__headers"]=JSON.stringify(objHeaders);
             var proxyUrl="/proxy";
             var bNet=false;
-            if((/10\./i.test(baseUrl) || /192\.168\./i.test(baseUrl) || /127\.0\.0\.1/i.test(baseUrl) || /172\.(16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31)\./.test(baseUrl) || /localhost/i.test(baseUrl)) && !bMock && session.get("proxy"))
+            if(!bMock && session.get("proxy"))
             {
                 bNet=true;
                 proxyUrl="http://127.0.0.1:36742";
@@ -934,8 +937,25 @@ module.exports=new Vuex.Store({
                     context.state.imgUrl=$.createUrlObject(result.data);
                     context.state.errorCount=0;
                 }
+                else if(result.header["content-type"] && result.header["content-type"].indexOf("/html")>-1)
+                {
+                    context.state.type="html";
+                    context.state.rawData=result.data;
+                    context.state.draw=result.data
+                    context.state.drawMix=result.data;
+                    context.state.errorCount=0;
+                }
                 else
                 {
+                    if(result.header["content-type"]===undefined || (result.header["content-type"] && result.header["content-type"].indexOf("/xml")==-1))
+                    {
+                        var ele=document.createElement("div");
+                        ele.innerHTML=result.data;
+                        if(ele.childNodes.length>1 || ele.childNodes[0].nodeType==1)
+                        {
+                            context.state.type="html";
+                        }
+                    }
                     context.state.rawData=result.data;
                     context.state.draw=result.data
                     context.state.drawMix=result.data;
@@ -990,7 +1010,6 @@ module.exports=new Vuex.Store({
             })
             var query=[];
             context.getters.querySave.forEach(function (obj) {
-                var value=obj.value;
                 var value=helper.handleValue(obj);
                 query.push({
                     name:obj.name,
@@ -1053,10 +1072,18 @@ module.exports=new Vuex.Store({
             var result=[];
             if(context.state.resultData)
             {
-                for(var key in context.state.resultData)
+                if((context.state.resultData instanceof Array) && context.state.resultData.length>0)
                 {
                     var resultObj=helper.findObj(context.state.interface.outParam,key);
-                    helper.handleResultData(key,context.state.resultData[key],result,resultObj)
+                    helper.handleResultData(key,context.state.resultData[0],result,resultObj)
+                }
+                else
+                {
+                    for(var key in context.state.resultData)
+                    {
+                        var resultObj=helper.findObj(context.state.interface.outParam,key);
+                        helper.handleResultData(key,context.state.resultData[key],result,resultObj)
+                    }
                 }
             }
             var outInfo;
@@ -1066,6 +1093,7 @@ module.exports=new Vuex.Store({
                     type:0,
                     rawRemark:"",
                     rawMock:"",
+                    jsonType:(context.state.resultData && (context.state.resultData instanceof Array))?1:0
                 }
             }
             else
@@ -1074,7 +1102,7 @@ module.exports=new Vuex.Store({
                     type:1,
                     rawRemark:context.state.interface.outInfo?context.state.interface.outInfo.rawRemark:"",
                     rawMock:context.state.interface.outInfo?context.state.interface.outInfo.rawMock:"",
-                    jsonType:(context.state.resultData && (context.state.resultData instanceof Array))?1:0
+                    jsonType:0
                 }
             }
             var obj={

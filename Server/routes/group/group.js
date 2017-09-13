@@ -11,8 +11,10 @@ var project=require("../../model/projectModel")
 var group=require("../../model/groupModel")
 var interface=require("../../model/interfaceModel")
 var interfaceVersion=require("../../model/interfaceVersionModel")
+var interfaceSnapshot=require("../../model/interfaceSnapshotModel")
 var groupVersion=require("../../model/groupVersionModel")
 var version=require("../../model/versionModel")
+var teamGroup=require("../../model/teamGroupModel")
 var fs=require("fs");
 var uuid=require("uuid/v1");
 let refreshInterface=async (function (req,id) {
@@ -85,7 +87,41 @@ function validateUser(req,res) {
         }))
         if(!obj)
         {
-            util.throw(e.projectNotFound,"项目不存在或者没有权限");
+            obj=await (project.findOneAsync({
+                _id:req.clientParam.id?req.clientParam.id:grp.project,
+            }));
+            if(!obj)
+            {
+                util.throw(e.projectNotFound,"项目不存在");
+                return;
+            }
+            if(obj.team)
+            {
+                let arrUser=await (teamGroup.findAsync({
+                    team:obj.team,
+                    users:{
+                        $elemMatch:{
+                            user:req.userInfo._id,
+                            role:{
+                                $in:[0,2]
+                            }
+                        }
+                    }
+                }))
+                if(arrUser.length==0)
+                {
+                    util.throw(e.userForbidden,"你没有权限");
+                    return;
+                }
+            }
+            else
+            {
+                util.throw(e.userForbidden,"你没有权限");
+                return;
+            }
+            req.obj=obj;
+            req.group=grp;
+            util.next();
         }
         else
         {
@@ -171,6 +207,13 @@ function remove(req,res) {
                 multi:true
             }))
             await (req.group.removeAsync());
+            await (interfaceSnapshot.updateAsync({
+                group:req.group._id
+            },{
+                group:obj._id
+            },{
+                multi:true
+            }));
             let arr=await (refreshInterface(req,req.group.project));
             util.ok(res,arr,"删除成功");
         }

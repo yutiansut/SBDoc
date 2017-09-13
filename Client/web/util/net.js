@@ -155,13 +155,20 @@ net.post=function (path,data,headers,beforeFunc,run,bNet) {
                         var reader = new FileReader();
                         reader.onload = function(){
                             var content = reader.result;
-                            try
+                            if(/application\/xml/i.test(res.headers.map["content-type"][0]) || /text\/xml/i.test(res.headers.map["content-type"][0]))
                             {
-                                resObj=JSON.parse(content);
+                                resObj=content;
                             }
-                            catch (err)
+                            else
                             {
-                                resObj=res.body;
+                                try
+                                {
+                                    resObj=JSON.parse(content);
+                                }
+                                catch (err)
+                                {
+                                    resObj=res.body;
+                                }
                             }
                             var obj={
                                 data:resObj,
@@ -473,18 +480,25 @@ net.upload=function (method,path,data,headers,beforeFunc,run,bNet) {
                     }
                     else
                     {
-                        if(xhr.responseType=="blob" &&  xhr.response.size<=1024*5)
+                        if((xhr.responseType=="blob" || xhr.responseType=="arraybuffer" || xhr.responseType=="document") &&  xhr.response.size<=1024*5)
                         {
                             var reader = new FileReader();
                             reader.onload = function(){
                                 var content = reader.result;
-                                try
+                                if(/application\/xml/i.test(xhr.getResponseHeader("content-type")) || /text\/xml/i.test(xhr.getResponseHeader("content-type")))
                                 {
-                                    resObj=JSON.parse(content);
+                                    resObj=content;
                                 }
-                                catch (err)
+                                else
                                 {
-                                    resObj=xhr.response;
+                                    try
+                                    {
+                                        resObj=JSON.parse(content);
+                                    }
+                                    catch (err)
+                                    {
+                                        resObj=xhr.response;
+                                    }
                                 }
                                 var obj={
                                     data:resObj,

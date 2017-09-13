@@ -110,7 +110,7 @@ helper.eachResult=function (item,pItem,arr,json) {
                             bFind=true;
                         }
                     })
-                    if(!bFind)
+                    if(!bFind && v)
                     {
                         item.value.data.push({
                             value:v,
@@ -118,6 +118,7 @@ helper.eachResult=function (item,pItem,arr,json) {
                         });
                     }
                 }
+                obj.value=$.clone(item.value);
             }
             else
             {
@@ -177,7 +178,7 @@ helper.convertToJSON=function (data,obj,info,run) {
             {
                 if(data.mock)
                 {
-                    return Boolean($.trim(data.mock))
+                    return Boolean(eval($.trim(data.mock)))
                 }
                 else
                 {
@@ -247,7 +248,7 @@ helper.convertToJSON=function (data,obj,info,run) {
                 }
                 else if(data.type==2)
                 {
-                    return Boolean(temp);
+                    return Boolean(eval(temp));
                 }
             }
             else if(/^arr/i.test(str))
@@ -338,7 +339,7 @@ helper.convertToJSON=function (data,obj,info,run) {
                         }
                         else if(data.type==2)
                         {
-                            return Boolean(ret);
+                            return Boolean(eval(ret));
                         }
                         else if(data.type==5)
                         {
@@ -921,13 +922,13 @@ helper.handleResultData=function (name,data,result,originObj,show,input,bArr) {
                 for(var i=0;i<data.length;i++)
                 {
                     var resultObj=originObj?((originObj.data && originObj.data.length>0)?originObj.data[i]:null):null;
-                    arguments.callee(null,data[i],obj.data,resultObj,show,input)
+                    arguments.callee(null,data[i],obj.data,resultObj,show,input,bArr)
                 }
             }
             else
             {
                 var resultObj=originObj?((originObj.data && originObj.data.length>0)?originObj.data[0]:null):null;
-                arguments.callee(null,data[0],obj.data,resultObj,show,input)
+                arguments.callee(null,data[0],obj.data,resultObj,show,input,bArr)
             }
         }
     }
@@ -977,7 +978,7 @@ helper.handleResultData=function (name,data,result,originObj,show,input,bArr) {
         for(var key in data)
         {
             var resultObj=helper.findObj(originObj?originObj.data:null,key);
-            arguments.callee(key,data[key],obj.data,resultObj,show,input)
+            arguments.callee(key,data[key],obj.data,resultObj,show,input,bArr)
         }
     }
     else
@@ -1155,7 +1156,7 @@ helper.encrypt=function (type,val,salt) {
     return val;
 }
 
-helper.runBefore=function (code,url,path,method,query,header,body) {
+helper.runBefore=function (code,url,path,method,query,header,body,param) {
     var Base64=BASE64.encoder,MD5=CryptoJS.MD5,SHA1=CryptoJS.SHA1,SHA256=CryptoJS.SHA256,SHA512=CryptoJS.SHA512,SHA3=CryptoJS.SHA3,RIPEMD160=CryptoJS.RIPEMD160,AES=CryptoJS.AES.encrypt,TripleDES=CryptoJS.TripleDES.encrypt,DES=CryptoJS.DES.encrypt,Rabbit=CryptoJS.Rabbit.encrypt,RC4=CryptoJS.RC4.encrypt,RC4Drop=CryptoJS.RC4Drop.encrypt;
     try
     {
@@ -1297,10 +1298,10 @@ helper.handleMockInfo=function (type,param,query,header,body,state) {
     if(state && (state.interfaceEdit || state.interface))
     {
         info.global={
-            name:type==0?state.interfaceEdit.name:state.interface.name,
+            name:type==0?(state.interfaceEdit?state.interfaceEdit.name:state.interface.name):state.interface.name,
             baseurl:type==0?"":state.baseurl,
-            path:type==0?state.interfaceEdit.url:state.interface.url,
-            method:type==0?state.interfaceEdit.method:state.interface.method
+            path:type==0?(state.interfaceEdit?state.interfaceEdit.url:state.interface.url):state.interface.url,
+            method:type==0?(state.interfaceEdit?state.interfaceEdit.method:state.interface.method):state.interface.method
         }
     }
     else
@@ -1704,39 +1705,9 @@ helper.runTest=async function (obj,baseUrl,global,test,root,opt) {
         }
     }
     var objParam=$.clone(obj.restParam);
-    if(opt && opt.param)
-    {
-        var arr=[];
-        for(var key in opt.param)
-        {
-            var val=opt.param[key];
-            var objItem;
-            objParam.forEach(function (obj) {
-                if(obj.name==key)
-                {
-                    objItem=obj;
-                }
-            })
-            if(objItem)
-            {
-                objItem.selValue=val;
-            }
-            else
-            {
-                arr.push({
-                    name:key,
-                    remark:"",
-                    selValue:val
-                })
-            }
-        }
-        objParam=objParam.concat(arr);
-    }
+    var param={};
     objParam.forEach(function (obj) {
-        if(obj.name)
-        {
-            path=path.replace("{"+obj.name+"}",obj.selValue)
-        }
+        param[obj.name]=obj.selValue;
     })
     var query={};
     obj.queryParam.forEach(function (obj) {
@@ -1759,7 +1730,7 @@ helper.runTest=async function (obj,baseUrl,global,test,root,opt) {
             query[obj.name]=obj.selValue;
         }
     })
-    var header={},arrHeaders=["host","connection","origin","referer","user-agent"],objHeaders={};
+    var header={},arrHeaders=["host","connection","origin","referer","user-agent","cookie"],objHeaders={};
     obj.header.forEach(function (obj) {
         if(!obj.name || !obj.enable)
         {
@@ -1920,13 +1891,25 @@ helper.runTest=async function (obj,baseUrl,global,test,root,opt) {
     {
         if(global.before)
         {
-            helper.runBefore(global.before,baseUrl,path,method,query,header,body)
+            helper.runBefore(global.before,baseUrl,path,method,query,header,body,param)
         }
-        helper.runBefore(obj.before.code,baseUrl,path,method,query,header,body)
+        helper.runBefore(obj.before.code,baseUrl,path,method,query,header,body,param)
     }
     else
     {
-        helper.runBefore(obj.before.code,baseUrl,path,method,query,header,body)
+        helper.runBefore(obj.before.code,baseUrl,path,method,query,header,body,param)
+    }
+    if(opt && opt.param)
+    {
+        for(var key in opt.param)
+        {
+            var val=opt.param[key];
+            param[key]=val;
+        }
+    }
+    for(var paramKey in param)
+    {
+        path=path.replace("{"+paramKey+"}",param[paramKey])
     }
     if(opt && opt.query)
     {
@@ -2017,7 +2000,7 @@ helper.runTest=async function (obj,baseUrl,global,test,root,opt) {
     header["__headers"]=JSON.stringify(objHeaders);
     var proxyUrl="/proxy";
     var bNet=false;
-    if((/10\./i.test(baseUrl) || /192\.168\./i.test(baseUrl) || /127\.0\.0\.1/i.test(baseUrl) || /172\.(16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31)\./.test(baseUrl) || /localhost/i.test(baseUrl)) && session.get("proxy"))
+    if(session.get("proxy"))
     {
         bNet=true;
         proxyUrl="http://127.0.0.1:36742";
@@ -2113,7 +2096,7 @@ helper.runTestCode=async function (code,test,global,opt,root) {
         var text;
         if(type=="1")
         {
-            text="(function (opt) {return helper.runTest("+obj+",'"+opt.baseUrl+"',"+"{before:'"+opt.before+"',after:'"+opt.after+"'}"+",test,root,opt)})"
+            text="(function (opt) {return helper.runTest("+obj.replace(/\r|\n/g,"")+",'"+opt.baseUrl+"',"+"{before:'"+opt.before.replace(/'/g,"\\'").replace(/\r|\n/g,";")+"',after:'"+opt.after.replace(/'/g,"\\'").replace(/\r|\n/g,";")+"'}"+",test,root,opt)})"
         }
         else if(type=="2")
         {
@@ -2121,18 +2104,19 @@ helper.runTestCode=async function (code,test,global,opt,root) {
             try
             {
                 testObj=await net.get("/test/info",{
-                id:obj
-            }).then(function (data) {
-                if(data.code==200)
-                {
-                    return data.data
-                }
-                else
-                {
-                    $.notify(data.msg,0);
-                    throw "error";
-                }
-            })
+                    id:obj,
+                    project:session.get("projectId")
+                }).then(function (data) {
+                    if(data.code==200)
+                    {
+                        return data.data
+                    }
+                    else
+                    {
+                        $.notify(data.msg,0);
+                        throw "error";
+                    }
+                })
             }
             catch (err)
             {
