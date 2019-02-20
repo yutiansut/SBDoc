@@ -11,6 +11,7 @@ var model=new mongoose.Schema({
     age:Number,
     company:String,
     photo:String,
+    phone:String,
     state:{
         type:Number,
         default:1
@@ -23,11 +24,34 @@ var model=new mongoose.Schema({
     },
     lastLoginDate:Date,
     question:String,
-    answer:String
+    answer:String,
+    qqId:String,
+    sendInfo:{
+        user:{
+            type:String,
+            default:""
+        },
+        password:{
+            type:String,
+            default:""
+        },
+        smtp:{
+            type:String,
+            default:""
+        },
+        port:{
+            type:Number,
+            default:465
+        }
+    }
 },{
     timestamps:true
 });
-
+model.configOutputField(null,[
+    "createdAt",
+    "updatedAt",
+    "lastLoginDate"
+]);
 var dbManage=db.model("User",model);
 mongoomise.promisifyAll(dbManage,require("bluebird"));
 module.exports=dbManage;

@@ -39,7 +39,7 @@
                 </tr>
                 <tr v-if="(item.type==4 || item.type==3) && (item.data && item.data.length>0) && item.show">
                     <td colspan="7" style="width: 100%;margin:0;padding: 0 ">
-                        <inparambodyjson :source="item.data" :le="level+1" :parent="item"></inparambodyjson>
+                        <inparambodyjson :source="item.data" :le="level+1" :parent="item" :index="index" :data="data"></inparambodyjson>
                     </td>
                 </tr>
             </template>
@@ -51,7 +51,7 @@
     var dragArr=null,dragItem=null;
     module.exports={
         name:"inparambodyjson",
-        props:["source","le","parent"],
+        props:["source","le","parent","index","data"],
         data:function () {
             return {
                 level:this.le?this.le:0,
@@ -59,10 +59,10 @@
         },
         computed:{
             arr:function () {
-                return this.source?this.source:this.$store.state.bodyInfo.rawJSON
+                return this.source?this.source:this.data.bodyInfo.rawJSON
             },
             type:function () {
-                return this.$store.state.bodyInfo.rawJSONType;
+                return this.data.bodyInfo.rawJSONType;
             }
         },
         methods:{
@@ -303,7 +303,7 @@
                         status: ""
                     });
                 }
-                var child=$.showBox(this.$parent,"valueList",{
+                var child=$.showBox(this.$parent,require("./valueList.vue"),{
                     "source":item.value
                 });
                 child.$on("save",function (value) {

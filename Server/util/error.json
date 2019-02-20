@@ -36,5 +36,21 @@
   "versionNotFound":34,
   "versionInvalidate":35,
   "pollNotFound":36,
-  "articleNotFound":37
+  "articleNotFound":37,
+  "userNotInProject":38,
+  "interfaceDuplicate":39,
+  "adminNotFound":40,
+  "passwordWrong":41,
+  "templateNotFound":42,
+  "exampleNotFound":43,
+  "registerForbidden":44,
+  "docProjectNotFound":45,
+  "docGroupNotFound":46,
+  "docNotFound":47,
+  "userAlreadyInDoc":48,
+  "userNotInDoc":49,
+  "userAlreadyInTest":50,
+  "userNotInTest":51,
+  "testProjectNotFound":46,
+  "testCollectionNotFound":47
 }

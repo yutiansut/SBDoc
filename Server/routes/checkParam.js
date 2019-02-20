@@ -5,8 +5,8 @@ var express=require("express");
 var user=require("../model/userModel");
 var e=require("../util/error.json");
 var util=require("../util/util");
-var async=require("asyncawait/async")
-var await=require("asyncawait/await")
+
+
 function route(category) {
     var router = util.router(category);
     if(router instanceof Array)
@@ -14,7 +14,7 @@ function route(category) {
         return router[0];
     }
     var inter=require("./"+category+"/"+category+"Imp.js");
-    router.use(async (function(req,res,next)
+    router.use(async function(req,res,next)
     {
         var bFind=false;
         var index;
@@ -55,7 +55,7 @@ function route(category) {
                 });
                 return;
             }
-            else if (req.clientParam[key] && param[key].type == Number) {
+            else if (req.clientParam[key] && (param[key].type == Number || param[key]==Number)) {
                 if(isNaN(req.clientParam[key]))
                 {
                     res.json({
@@ -103,7 +103,7 @@ function route(category) {
             }
         }
         req.clientParam=temp;
-        if(inter[index].user)
+        if(inter[index].user || inter[index].admin)
         {
             req.handle=inter[index].handle
             next();
@@ -114,11 +114,8 @@ function route(category) {
             {
                 for(let func of inter[index].handle)
                 {
-                    let n={
-                        go:0
-                    }
-                    await (func(req,res,n))
-                    if(n.go==0)
+                    let ret=await (func(req,res))
+                    if(ret!==true)
                     {
                         break;
                     }
@@ -130,7 +127,7 @@ function route(category) {
             }
 
         }
-    }));
+    });
     return router;
 }
 

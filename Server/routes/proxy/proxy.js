@@ -10,11 +10,11 @@ var run=require("../../model/runModel")
 var getHeader = function (req) {
     var ret = {};
     for (var i in req.headers) {
-        if (!/^(host|connection|Access-|origin|referer|user-agent|__user|__path|__url|__method|__headers)/i.test(i)) {
+        if (!/^(host|connection|Access-|origin|referer|user-agent|user-doclever|path-doclever|url-doclever|method-doclever|headers-doclever|X-Requested-With)/i.test(i)) {
                 ret[i] = req.headers[i];
         }
     }
-    var headers=req.headers["__headers"];
+    var headers=req.headers["headers-doclever"];
     if(headers)
     {
         headers=JSON.parse(headers);
@@ -66,7 +66,7 @@ function getClientIp(req) {
 };
 
 function getHost(req) {
-    var url=req.headers["__url"];
+    var url=req.headers["url-doclever"];
     url=url.replace(/^(http:\/\/|https:\/\/)/i,"");
     var arr=url.split(":");
     var ret=arr[0];
@@ -78,9 +78,9 @@ function getHost(req) {
 }
 
 function getPort(req) {
-    var url=req.headers["__url"];
+    var url=req.headers["url-doclever"];
     var defaultPort;
-    if(req.headers["__url"].toLowerCase().startsWith("https://"))
+    if(req.headers["url-doclever"].toLowerCase().startsWith("https://"))
     {
         defaultPort=443;
     }
@@ -97,7 +97,7 @@ function redirect(res,bHttps,opt,location) {
     var urlRedirect=location;
     if(urlRedirect.startsWith("/"))
     {
-        urlRedirect=(bHttps?"https://":"http://")+opt.host+urlRedirect;
+        urlRedirect=(bHttps?"https://":"http://")+opt.host+":"+opt.port+urlRedirect;
     }
     var objUrl=url.parse(urlRedirect);
     var request1,opt1;
@@ -108,6 +108,7 @@ function redirect(res,bHttps,opt,location) {
             path:     objUrl.path,
             method:   "GET",
             port:objUrl.port?objUrl.port:80,
+			headers:opt.headers
         }
         request1=http.request;
         bHttps=false;
@@ -121,6 +122,7 @@ function redirect(res,bHttps,opt,location) {
             port:objUrl.port?objUrl.port:443,
             rejectUnauthorized: false,
             requestCert: true,
+			headers:opt.headers
         }
         request1=https.request;
         bHttps=true;
@@ -128,11 +130,15 @@ function redirect(res,bHttps,opt,location) {
     var req3=request1(opt1,function (res3) {
         if(res3.statusCode==302)
         {
+            handleCookieIfNecessary(opt1,res3.headers);
+            opt.headers.cookie=opt1.headers.cookie;
             redirect(res,bHttps,opt,res3.headers.location)
         }
         else
         {
-            res.writeHead(res3.statusCode, filterResHeader(res3.headers));
+            var resHeader=filterResHeader(res3.headers)
+            resHeader["doclever-request"]=JSON.stringify(handleSelfCookie(req3));
+            res.writeHead(res3.statusCode,resHeader);
             res3.pipe(res);
             res3.on('end', function () {
 
@@ -145,12 +151,51 @@ function redirect(res,bHttps,opt,location) {
     });
 }
 
+function handleCookieIfNecessary(opt, headers) {
+    let cookies = headers["set-cookie"];
+    if (cookies) {
+        for (let index in cookies) {
+            let cookie = cookies[index];
+            let realOfCookie = cookie.split(";")[0];
+            if (!opt.headers.cookie) {
+                opt.headers.cookie = "";
+            }
+            opt.headers.cookie += realOfCookie + ";";
+        }
+    }
+}
+
+function handleSelfCookie(req) {
+    var arr=req._headers;
+    arr["url"]=req.method+" "+req.path;
+    var cookie=arr["cookie"];
+    if(!cookie)
+    {
+        return arr;
+    }
+    var arrCookie=cookie.split(";");
+    var keys=["id","name","photo","qq","sex","company","phone","loginCount","age","email"];
+    arrCookie=arrCookie.filter(function (obj) {
+        obj=obj.trim();
+        for(let key of keys)
+        {
+            if(obj.startsWith(key+"="))
+            {
+                return false;
+            }
+        }
+        return true;
+    })
+    arr["cookie"]=arrCookie.join(";");
+    return arr;
+}
+
 var counter = 0;
 var onProxy = function (req, res) {
     counter++;
     var num = counter;
     var bHttps=false;
-    if(req.headers["__url"].toLowerCase().startsWith("https://"))
+    if(req.headers["url-doclever"].toLowerCase().startsWith("https://"))
     {
         bHttps=true;
     }
@@ -159,8 +204,8 @@ var onProxy = function (req, res) {
     {
         opt= {
             host:     getHost(req),
-            path:     req.headers["__path"],
-            method:   req.headers["__method"],
+            path:     req.headers["path-doclever"],
+            method:   req.headers["method-doclever"],
             headers:  getHeader(req),
             port:getPort(req),
             rejectUnauthorized: false,
@@ -172,15 +217,15 @@ var onProxy = function (req, res) {
     {
         opt= {
             host:     getHost(req),
-            path:     req.headers["__path"],
-            method:   req.headers["__method"],
+            path:     req.headers["path-doclever"],
+            method:   req.headers["method-doclever"],
             headers:  getHeader(req),
             port:getPort(req)
         };
         request=http.request;
     }
     run.create({
-        user:req.headers["__user"],
+        user:req.headers["user-doclever"],
         host:opt.host,
         path:opt.path,
     },function (err) {
@@ -189,18 +234,21 @@ var onProxy = function (req, res) {
     var req2 = request(opt, function (res2) {
         if(res2.statusCode==302)
         {
+            handleCookieIfNecessary(opt,res2.headers);
             redirect(res,bHttps,opt,res2.headers.location)
         }
         else
         {
-            res.writeHead(res2.statusCode, filterResHeader(res2.headers));
+            var resHeader=filterResHeader(res2.headers)
+            resHeader["doclever-request"]=JSON.stringify(handleSelfCookie(req2));
+            res.writeHead(res2.statusCode, resHeader);
             res2.pipe(res);
             res2.on('end', function () {
 
             });
         }
     });
-    if (/POST|PUT/i.test(req.method)) {
+    if (/POST|PUT|PATCH/i.test(req.method)) {
         req.pipe(req2);
     } else {
         req2.end();

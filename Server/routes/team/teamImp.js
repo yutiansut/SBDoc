@@ -1,7 +1,8 @@
 /**
  * Created by sunxin on 2017/6/7.
  */
-var team=require("./team");
+var teamClass=require("./team");
+var team=new teamClass();
 var interface=[
     {
         "method":"POST",
@@ -364,6 +365,199 @@ var interface=[
         "data":String,
         user:1,
         handle:[team.validate,team.removeTeam]
+    },
+    {
+        "method":"PUT",
+        "path":"/team/transfer",
+        "param": {
+            id:{
+                type:String,
+            },
+            user:String
+        },
+        "data":String,
+        user:1,
+        handle:[team.validate,team.transfer]
+    },
+    {
+        "method":"GET",
+        "path":"/team/user",
+        "param": {
+            id:{
+                type:String,
+            },
+        },
+        "data":String,
+        user:1,
+        handle:[team.validate,team.userList]
+    },
+    {
+        "method":"GET",
+        "path":"/team/list",
+        "param": {
+
+        },
+        "data":String,
+        user:1,
+        handle:[team.list]
+    },
+    {
+        "method":"GET",
+        "path":"/team/projectlist",
+        "param": {
+            id:{
+                type:String,
+            },
+        },
+        "data":String,
+        user:1,
+        handle:[team.validate,team.projectList]
+    },
+    {
+        "method":"GET",
+        "path":"/team/doclist",
+        "param": {
+            id:{
+                type:String,
+            },
+        },
+        "data":String,
+        user:1,
+        handle:[team.validate,team.docList]
+    },
+    {
+        "method":"GET",
+        "path":"/team/testlist",
+        "param": {
+            id:{
+                type:String,
+            },
+        },
+        "data":String,
+        user:1,
+        handle:[team.validate,team.testList]
+    },
+    {
+        "method":"DELETE",
+        "path":"/team/doc",
+        "param": {
+            id:{
+                type:String,
+            },
+            project:String
+        },
+        "data":String,
+        user:1,
+        handle:[team.validate,team.removeDoc]
+    },
+    {
+        "method":"GET",
+        "path":"/team/docuser",
+        "param": {
+            id:{
+                type:String,
+            },
+            project:{
+                type:String
+            }
+        },
+        "data":String,
+        user:1,
+        handle:[team.validate,team.docUser]
+    },
+    {
+        "method":"PUT",
+        "path":"/team/pulldoc",
+        "param": {
+            id:{
+                type:String,
+            },
+            project:String
+        },
+        "data":String,
+        user:1,
+        handle:[team.validate,team.pullDoc]
+    },
+    {
+        "method":"PUT",
+        "path":"/team/docapply",
+        "param": {
+            id:{
+                type:String,
+            },
+            project:{
+                type:String,
+                optional:1
+            },
+            dis:{
+                type:String,
+                optional:1
+            }
+        },
+        "data":String,
+        user:1,
+        handle:[team.validateTeam,team.docApply]
+    },
+    {
+        "method":"DELETE",
+        "path":"/team/test",
+        "param": {
+            id:{
+                type:String,
+            },
+            project:String
+        },
+        "data":String,
+        user:1,
+        handle:[team.validate,team.removeTest]
+    },
+    {
+        "method":"GET",
+        "path":"/team/testuser",
+        "param": {
+            id:{
+                type:String,
+            },
+            project:{
+                type:String
+            }
+        },
+        "data":String,
+        user:1,
+        handle:[team.validate,team.testUser]
+    },
+    {
+        "method":"PUT",
+        "path":"/team/pulltest",
+        "param": {
+            id:{
+                type:String,
+            },
+            project:String
+        },
+        "data":String,
+        user:1,
+        handle:[team.validate,team.pullTest]
+    },
+    {
+        "method":"PUT",
+        "path":"/team/testapply",
+        "param": {
+            id:{
+                type:String,
+            },
+            project:{
+                type:String,
+                optional:1
+            },
+            dis:{
+                type:String,
+                optional:1
+            }
+        },
+        "data":String,
+        user:1,
+        handle:[team.validateTeam,team.testApply]
     },
 ];
 

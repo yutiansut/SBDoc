@@ -1,7 +1,8 @@
 /**
  * Created by sunxin on 2017/7/7.
  */
-var message=require("./message");
+var messageClass=require("./message");
+var message=new messageClass();
 var interface=[
     {
         "method":"DELETE",
@@ -44,6 +45,16 @@ var interface=[
         "data":String,
         user:1,
         handle:[message.newMsg]
+    },
+    {
+        "method":"GET",
+        "path":"/message/applylist",
+        "param": {
+
+        },
+        "data":String,
+        user:1,
+        handle:[message.applyList]
     },
 ];
 

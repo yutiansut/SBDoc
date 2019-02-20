@@ -1,7 +1,8 @@
 /**
  * Created by sunxin on 2016/11/20.
  */
-var inter=require("./interface");
+var interClass=require("./interface");
+var inter=new interClass();
 var interface=[
     {
         "method":"POST",
@@ -30,14 +31,6 @@ var interface=[
                 type:Number,
                 optional:1
             },
-            before:{
-                type:String,
-                optional:1
-            },
-            after:{
-                type:String,
-                optional:1
-            },
             method:{
                 type:String,
                 uppercase:1,
@@ -45,41 +38,15 @@ var interface=[
                     in:["GET","POST","PUT","DELETE","PATCH"]
                 }
             },
-            header:{
-                type:String,   //json字符串
+            param:{
+                type:String,
                 optional:1
             },
-            queryparam:{
-                type:String,   //json字符串
-                optional:1,
-                rename:"queryParam"
-            },
-            bodyparam:{
-                type:String,   //json字符串
-                optional:1,
-                rename:"bodyParam"
-            },
-            outparam:{
-                type:String,   //json字符串
-                optional:1,
-                rename:"outParam"
-            },
-            restparam:{
-                type:String,   //json字符串
-                optional:1,
-                rename:"restParam"
-            },
-            bodyinfo:{
-                type:String,   //json字符串
-                optional:1,
-                rename:"bodyInfo"
-            },
-            outinfo:{
-                type:String,   //json字符串
-                optional:1,
-                rename:"outInfo"
-            },
             id:{
+                type:String,
+                optional:1
+            },
+            autosave:{
                 type:String,
                 optional:1
             }
@@ -121,6 +88,10 @@ var interface=[
             },
             group:{
                 type:String
+            },
+            index:{
+                type:Number,
+                optional:1
             }
         },
         "data":String,
@@ -238,6 +209,64 @@ var interface=[
         "data":String,
         user:1,
         handle:inter.snapshotRoll
+    },
+    {
+        "method":"POST",
+        "path":"/interface/notify",
+        "param": {
+            id:{
+                type:String
+            },
+            users:{
+                type:String
+            },
+            content:{
+                type:String,
+                optional:1
+            }
+        },
+        "data":String,
+        user:1,
+        handle:inter.notify
+    },
+    {
+        "method":"PUT",
+        "path":"/interface/merge",
+        "param": {
+            id:{
+                type:String
+            }
+        },
+        "data":String,
+        user:1,
+        handle:inter.merge
+    },
+    {
+        "method":"GET",
+        "path":"/interface/docref",
+        "param": {
+            id:{
+                type:String
+            }
+        },
+        "data":String,
+        user:1,
+        handle:inter.docRef
+    },
+    {
+        "method":"GET",
+        "path":"/interface/param",
+        "param": {
+            id:{
+                type:String
+            },
+            param:{
+                type:String
+            }
+        },
+        "data":String,
+        user:1,
+        handle:inter.getParam
     },
 ];
 

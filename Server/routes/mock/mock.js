@@ -2,8 +2,8 @@
  * Created by sunxin on 2017/2/5.
  */
 var express=require("express");
-var async=require("asyncawait/async")
-var await=require("asyncawait/await")
+
+
 var e=require("../../util/error.json");
 var util=require("../../util/util");
 var con=require("../../../config.json");
@@ -14,12 +14,7 @@ var interface=require("../../model/interfaceModel")
 var interfaceVersion=require("../../model/interfaceVersionModel")
 var fs=require("fs");
 var router=express.Router();
-router.use("/:id",async (validate))
-
-router.use(async (handle))
-
-
-function validate(req,res,next) {
+router.use("/:id",async function(req,res,next) {
     try
     {
         req.arrFile.forEach(function (obj) {
@@ -35,6 +30,7 @@ function validate(req,res,next) {
         if(versionId)
         {
             req.interfaceModel=interfaceVersion;
+            req.version=versionId;
         }
         let obj=await (project.findOneAsync({
             _id:projectId
@@ -82,10 +78,12 @@ function validate(req,res,next) {
                 let arrUrl=o.url.split("/");
                 if(arrUrl.length==mockArr.length)
                 {
-                    let bMatch=true;
+                    let bMatch=true,param={};
                     for(let i=0;i<arrUrl.length;i++)
                     {
-                        if(!(arrUrl[i].indexOf("{")>-1 && arrUrl[i].indexOf("}")>-1 && arrUrl[i].length>2))
+                        let start=arrUrl[i].indexOf("{");
+                        let end=arrUrl[i].indexOf("}");
+                        if(!(start>-1 && end>-1 && arrUrl[i].length>2))
                         {
                             if(arrUrl[i]!=mockArr[i])
                             {
@@ -93,10 +91,17 @@ function validate(req,res,next) {
                                 break;
                             }
                         }
+                        else if(start>-1 && end>-1 && arrUrl[i].length>2)
+                        {
+                            let str=arrUrl[i].substring(start+1,end);
+                            let len=arrUrl[i].substr(end+1).length;
+                            param[str]=mockArr[i].substr(start,mockArr[i].length-(start+len));
+                        }
                     }
                     if(bMatch)
                     {
                         req.obj=o;
+                        req.param=param;
                         next();
                         return;
                     }
@@ -114,55 +119,49 @@ function validate(req,res,next) {
     {
         util.catch(res,err);
     }
-}
+})
 
-function handle(req,res) {
+router.use(async function(req,res) {
     try
     {
-        let param,clientParam;
+        let param,clientParam,type;
         if(req.obj.method=="GET" || req.obj.method=="DELETE")
         {
-            param=req.obj.queryParam;
-            clientParam=Object.keys(req.query);
-
+            type="query";
+            clientParam=req.query;
         }
         else
         {
-            if(!req.obj.bodyInfo || req.obj.bodyInfo.type==0)
+            if(req.headers["content-type"]=="application/json")
             {
-                param=req.obj.bodyParam;
-                clientParam=Object.keys(req.clientParam || req.body);
+                type="json";
             }
-        }
-        if(param)
-        {
-            for(let obj of param)
+            else
             {
-                if(obj.must==1)
-                {
-                    if(clientParam.indexOf(obj.name)==-1)
-                    {
-                        util.throw(e.missParam,"缺少"+obj.name+"参数");
-                    }
-                }
+                type="body";
             }
+            clientParam=req.clientParam || req.body;
         }
-        res.setHeader("__finish",req.obj.finish);
+        param=await (util.getMockParam(clientParam,req.obj,type,req.version));
+        res.setHeader("finish-doclever",req.obj.finish);
         let info=util.handleMockInfo(req.param,req.query,req.body,req.headers,req.obj,req.protocol+"://"+req.headers.host+req.originalUrl);
-        if(!req.obj.outInfo || req.obj.outInfo.type==0)
+        if(!param.outInfo || param.outInfo.type==0)
         {
-            let result=req.obj.outInfo.jsonType==1?[]:{};
-            util.convertToJSON(req.obj.outParam,result,info);
+            let result=param.outInfo.jsonType==1?[]:{};
+            util.convertToJSON(param.outParam,result,info);
             res.json(result);
         }
         else
         {
-            res.json(util.mock(req.obj.outInfo.rawMock,info));
+            res.json(util.mock(param.outInfo.rawMock,info));
         }
     }
     catch (err)
     {
         util.catch(res,err);
     }
-}
+})
+
+
+
 module.exports=router;

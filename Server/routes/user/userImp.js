@@ -1,23 +1,69 @@
 /**
  * Created by sunxin on 2016/11/9.
  */
-var user=require("./user");
+var userClass=require("./user");
+var user=new userClass();
 var interface=[
     {
         "method":"POST",
         "path":"/user/login",
         "param": {
             name:{
-                type:String
+                type:String,
+                optional:1
             },
             password:{
-                type:String
+                type:String,
+                optional:1
+            },
+            id:{
+                type:String,
+                optional:1
+            },
+            qqid:{
+                type:String,
+                optional:1
+            },
+            qqimg:{
+                type:String,
+                optional:1
             }
         },
         "data":{
 
         },
         handle:user.login
+    },
+    {
+        "method":"POST",
+        "path":"/user/createqq",
+        "param": {
+            name:{
+                type:String,
+            },
+            password:{
+                type:String,
+            },
+            qqid:{
+                type:String,
+            },
+            qqimg:{
+                type:String,
+            },
+            question:{
+                type:String
+            },
+            answer:{
+                type:String
+            },
+            email:{
+                type:String
+            }
+        },
+        "data":{
+
+        },
+        handle:user.createQQ
     },
     {
         "method":"POST",
@@ -54,6 +100,10 @@ var interface=[
                 type:String
             },
             photo:{
+                optional:1,
+                type:String
+            },
+            phone:{
                 optional:1,
                 type:String
             },
@@ -170,6 +220,51 @@ var interface=[
         },
         user:1,
         handle:user.handleApply
+    },
+    {
+        "method":"PUT",
+        "path":"/user/sendinfo",
+        "param": {
+            user:{
+                type:String
+            },
+            password:{
+                type:String
+            },
+            smtp:{
+                type:String
+            },
+            port:{
+                type:Number
+            }
+        },
+        "data":{
+
+        },
+        user:1,
+        handle:user.setSendInfo
+    },
+    {
+        "method":"GET",
+        "path":"/user/sendinfo",
+        "param": {
+
+        },
+        "data":{
+
+        },
+        user:1,
+        handle:user.getSendInfo
+    },
+    {
+        "method":"GET",
+        "path":"/user/version",
+        "param": {
+        },
+        "data":{
+
+        },
+        handle:user.version
     },
 ];
 
